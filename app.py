@@ -11,7 +11,7 @@ import users
 app = Flask(__name__)
 app.secret_key = config.secret_key
 
-def check_login():
+def require_login():
     if "user_id" not in session:
         abort(403)
 
@@ -36,7 +36,6 @@ def index():
 
 @app.route("/recipe/<int:recipe_id>")
 def show_recipe(recipe_id):
-
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
         abort(404)
@@ -55,7 +54,8 @@ def show_recipe(recipe_id):
     hours = time // 60
     minutes = time % 60
 
-    return render_template("show_recipe.html", recipe=recipe, ingredients=ingredients,
+    return render_template("show_recipe.html",
+                            recipe=recipe, ingredients=ingredients,
                             username=username, hours=hours,
                             minutes=minutes, classes=classes,
                             comments=comments, images=images)
@@ -96,7 +96,7 @@ def login():
 
 @app.route("/images/<int:recipe_id>")
 def edit_images(recipe_id):
-    check_login()
+    require_login()
     recipe = recipes.get_recipe(recipe_id)
 
     if not recipe:
@@ -110,7 +110,7 @@ def edit_images(recipe_id):
 
 @app.route("/add_image", methods=["POST"])
 def add_image():
-    check_login()
+    require_login()
     check_csrf()
     recipe_id = request.form["recipe_id"]
     recipe = recipes.get_recipe(recipe_id)
@@ -136,14 +136,15 @@ def add_image():
         if len(image) > 100 * 1024:
             flash("Kuva on liian suuri")
             return redirect(f"/images/{recipe_id}")
-        user_id = session["user_id"]
+
         recipes.add_image(recipe_id, image)
         return redirect(f"/images/{recipe_id}")
     
 @app.route("/remove_image", methods=["POST"])
 def remove_image():
-    check_login()
+    require_login()
     check_csrf()
+
     recipe_id = request.form["recipe_id"]
     recipe = recipes.get_recipe(recipe_id)
 
@@ -204,7 +205,7 @@ def message():
 
 @app.route("/newrecipe", methods=["GET", "POST"])
 def newrecipe():
-    check_login()
+    require_login()
 
     count = int(request.form.get("count", 1))
 
@@ -269,7 +270,7 @@ def newrecipe():
 
 @app.route("/create_recipe", methods=["GET","POST"])
 def submit_new_recipe():
-    check_login()
+    require_login()
     check_csrf()
 
     count = int(request.form.get("count", 1))
@@ -339,7 +340,11 @@ def submit_new_recipe():
         flash("Puuttuvia tietoja!")
         return redirect("/newrecipe")
     else:
-        recipe_id = recipes.add_recipe(ingredients, amounts, description, recipename, user_id, section, time, choices)
+        recipe_id = recipes.add_recipe(ingredients, amounts,
+                                        description, recipename,
+                                        user_id, section,
+                                        time, choices)
+
         if recipe_id == "name already_in_use":
             flash("nimi on jo käytössä, valitse toinen nimi")
             return render_template(
@@ -359,13 +364,15 @@ def submit_new_recipe():
 
 @app.route("/submit_comment", methods=["POST"])
 def newcomment():
-    check_login()
+    require_login()
     check_csrf()
+
     comment = request.form.get("comment", "")
     recipe_id = request.form.get("recipe_id", "")
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
         abort(404)
+
     user_id = session["user_id"]
     recipes.add_comment(comment, recipe_id, user_id)
     return redirect(f"/recipe/{recipe_id}")
@@ -373,8 +380,9 @@ def newcomment():
 @app.route("/remove_comment/<int:comment_id>", methods=["POST"])
 def remove_comment(comment_id):
     if request.method == "POST":
-        check_login()
+        require_login()
         check_csrf()
+
         user_id = session["user_id"]
         com = recipes.get_comment_author_and_recipe(comment_id)
         if com == None:
@@ -388,7 +396,8 @@ def remove_comment(comment_id):
 
 @app.route("/edit_recipe/<int:recipe_id>", methods=["GET", "POST"])
 def edit_recipe(recipe_id):
-    check_login()
+    require_login()
+
     recipe = recipes.get_recipe(recipe_id)
 
     if not recipe:
@@ -400,6 +409,7 @@ def edit_recipe(recipe_id):
 
     if request.method == "POST":
         check_csrf()
+
         recipename = request.form.get("recipename")
         description = request.form.get("description")
         count = int(request.form.get("count", 1))
@@ -474,7 +484,9 @@ def edit_recipe(recipe_id):
 
 
     ingredients_data = recipes.get_ingredients(recipe_id)
-    ingredients = [{"name": row["name"], "amount": row["amount"]} for row in ingredients_data] or [{"name": "", "amount": ""}]
+    ingredients = [{"name": row["name"], "amount": row["amount"]} 
+                   for row in ingredients_data
+                   ] or [{"name": "", "amount": ""}]
     description = recipe["description"]
     count = len(ingredients)
 
@@ -498,11 +510,16 @@ def edit_recipe(recipe_id):
         if section in options:
             choices[category] = section
 
-    return render_template("edit.html", recipe=recipe, ingredients=ingredients, description=description,
-                                        count=count, section=section, hours=hours,
-                                        minutes=minutes, classes=classes, choices=choices, images=images)
+    return render_template("edit.html", 
+                            recipe=recipe, ingredients=ingredients, 
+                            description=description, count=count, 
+                            section=section, hours=hours,
+                            minutes=minutes, classes=classes, 
+                            choices=choices, images=images)
 
-def update_recipe(recipe_id, recipename, ingredients, description, section, time, classes, choices, count, hours, minutes, images):
+def update_recipe(recipe_id, recipename, ingredients, 
+                  description, section, time, classes, 
+                  choices, count, hours, minutes, images):
     recipe = recipes.get_recipe(recipe_id)
 
     if not recipe:
@@ -518,7 +535,9 @@ def update_recipe(recipe_id, recipename, ingredients, description, section, time
     if len(description) > 1000:
         abort(403)
 
-    error = recipes.update_recipe(recipe_id, recipename, ingredients, description, section, time, classes, choices)
+    error = recipes.update_recipe(recipe_id, recipename,
+                                   ingredients, description, 
+                                   section, time, classes, choices)
     if error == "name_already_in_use":
         flash("nimi on jo käytössä, valitse toinen nimi")
         return render_template("edit.html", recipe=recipe, ingredients=ingredients,
@@ -533,7 +552,7 @@ def update_recipe(recipe_id, recipename, ingredients, description, section, time
 
 @app.route("/remove_recipe/<int:recipe_id>", methods=["GET", "POST"])
 def remove_recipe(recipe_id):
-    check_login()
+    require_login()
 
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
