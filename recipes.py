@@ -98,7 +98,7 @@ def remove_comment(comment_id):
     sql = "DELETE FROM Comments WHERE Comments.id = ?"
     db.execute(sql, [comment_id])
 
-def get_comments(recipe_id):
+def get_recipes_comments(recipe_id):
     sql = """SELECT Comments.comment_str, Users.id AS user_id,
             Users.username, Comments.id
             FROM Comments, Users WHERE Comments.recipe_id = ?
@@ -139,7 +139,7 @@ def remove_recipe(recipe_id):
     sql = "DELETE FROM Recipes WHERE id = ?"
     db.execute(sql, [recipe_id])
 
-def find_recipes(query):
+def search_recipes(query):
     sql = """SELECT R.id, R.name, R.user_id,
             U.username, COUNT(C.id) comment_count,
             (SELECT Images.id FROM Images
@@ -155,7 +155,7 @@ def find_recipes(query):
 
     return db.query(sql, ["%" + query + "%", "%" + query + "%", "%" + query + "%"])
 
-def get_classes(recipe_id):
+def get_recipes_classes(recipe_id):
     sql = "SELECT title, value FROM Recipe_classes WHERE recipe_id = ?"
     return db.query(sql, [recipe_id])
 

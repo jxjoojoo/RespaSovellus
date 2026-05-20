@@ -8,7 +8,7 @@ def get_user(user_id):
     result = db.query(sql, [user_id])
     return result[0] if result else None
 
-def get_recipes(user_id):
+def get_users_recipes(user_id):
     sql = """SELECT Recipes.id, Recipes.name,
             COUNT(Comments.id) comment_count,
             (SELECT Images.id FROM Images

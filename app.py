@@ -48,9 +48,9 @@ def show_recipe(recipe_id):
 
     sql = "SELECT username FROM Users WHERE id = ?"
     username = db.query(sql, [user_id])[0][0]
-    classes = recipes.get_classes(recipe_id)
+    classes = recipes.get_recipes_classes(recipe_id)
 
-    comments = recipes.get_comments(recipe_id)
+    comments = recipes.get_recipes_comments(recipe_id)
     images = recipes.get_images(recipe_id)
 
     time = int(recipe["time"]) if recipe["time"] else 0
@@ -201,7 +201,7 @@ def create_new_account():
     return redirect("/message")
 
 @app.route("/message")
-def message():
+def flash_message():
     #redirect("/message?prev={edellinen sivu}") kun ohjaus muualle
     prev = request.args.get("prev", "/")
     return render_template("message.html", prev=prev)
@@ -353,7 +353,7 @@ def submit_new_recipe():
     return redirect(F"/message?prev=/recipe/{recipe_id}")
 
 @app.route("/submit_comment", methods=["POST"])
-def newcomment():
+def submit_new_comment():
     require_login()
     check_csrf()
 
@@ -475,7 +475,7 @@ def edit_recipe(recipe_id):
         count = len(ingredients)
 
         classes = recipes.get_all_classes()
-        classes_data = recipes.get_classes(recipe_id)
+        classes_data = recipes.get_recipes_classes(recipe_id)
         #-> [<sqlite object>, <sqlite object>]
         section = classes_data[0] if classes_data else ""
         time = int(recipe["time"]) if recipe["time"] else 0
@@ -559,10 +559,10 @@ def remove_recipe(recipe_id):
             return redirect("/recipe/" + str(recipe_id))
 
 @app.route("/find_recipe")
-def find_recipe():
+def search_recipes():
     query = request.args.get("query")
     if query:
-        results = recipes.find_recipes(query)
+        results = recipes.search_recipes(query)
     else:
         query = ""
         results = []
@@ -574,7 +574,7 @@ def show_user(user_id):
     user = users.get_user(user_id)
     if not user:
         abort(404)
-    user_recipes = users.get_recipes(user_id)
+    user_recipes = users.get_users_recipes(user_id)
 
     return render_template("show_user.html",
                            user=user, user_recipes=user_recipes)
