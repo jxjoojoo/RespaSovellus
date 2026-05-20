@@ -35,5 +35,18 @@
 </div>
 {% endfor %}
 
+<p>
+  <h3 class="pagenav">
+  {% if page_count > 1%}
+    {% if page > 1 %}
+      <a href="/find_recipe/{{ page - 1 }}?query={{ query }}">&lt;&lt;</a>
+    {% endif %}
+    Sivu {{ page }}/{{ page_count }}
+    {% if page < page_count %}
+      <a href="/find_recipe/{{ page + 1 }}?query={{ query }}">&gt;&gt;</a>
+    {% endif %}
+  {% endif %}
+  </h3>
+</p>
 {% endblock %}
 

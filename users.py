@@ -8,7 +8,7 @@ def get_user(user_id):
     result = db.query(sql, [user_id])
     return result[0] if result else None
 
-def get_users_recipes(user_id):
+def get_users_recipes(user_id, page, page_size):
     sql = """SELECT Recipes.id, Recipes.name,
             COUNT(Comments.id) comment_count,
             (SELECT Images.id FROM Images
@@ -17,8 +17,16 @@ def get_users_recipes(user_id):
             FROM Recipes LEFT JOIN Comments
             ON Recipes.id = Comments.recipe_id
             WHERE Recipes.user_id = ? GROUP BY Recipes.id
-            ORDER BY Recipes.id DESC"""
-    return db.query(sql, [user_id])
+            ORDER BY Recipes.id DESC
+            LIMIT ? OFFSET ?"""
+    limit = page_size
+    offset = page_size * (page - 1)
+    return db.query(sql, [user_id, limit, offset])
+
+def get_users_recipe_count(user_id):
+    sql = "SELECT COUNT(*) FROM Recipes WHERE user_id = ?"
+    result = db.query(sql, [user_id])
+    return result[0][0]
 
 def create_user(name, password):
     password_hash = generate_password_hash(password)

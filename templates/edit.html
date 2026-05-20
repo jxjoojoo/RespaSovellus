@@ -50,8 +50,9 @@
         <button type="submit" class="removebutton" name="remove" value="{{ i }}">Poista</button>
       </div>
     {% endfor %}
+    {% if count < 20 %}
     <button type="submit" class="ingbutton" name="add" value="1">Lisää ainesosa</button>
-
+    {% endif %}
     <h3>Ohjeet:</h3>
       <label for="description" class="hidden">Ohjeet</label>
       <textarea name="description"

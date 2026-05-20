@@ -32,15 +32,17 @@
     </p>
     {% endif %}
     </form>
+    {% if images | count < 10 %}
     <h2>Valitse uusi .jpg kuva</h2>
     <form action="/add_image" method="post" enctype="multipart/form-data">
-    <p>
-      <input type="file" name="image" accept="image/*" />
-    </p>
-    <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
-    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
-    <input class="removebutton" type="submit" value="Lisää kuva" />
-  </form>
+      <p>
+        <input type="file" name="image" accept="image/*" />
+      </p>
+      <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
+      <input class="removebutton" type="submit" value="Lisää kuva" />
+    </form>
+    {% endif %}
     {% set messages = get_flashed_messages() %}
     {% if messages %}
       {% if "lisätty" in messages %}

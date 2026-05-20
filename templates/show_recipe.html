@@ -38,6 +38,17 @@
     {{ minutes }}min
   </p>
   <h3>Reseptin tekijä: <a href="/user/{{ recipe.user_id }}"> {{ username }}</a></h3>
+  {% if session.user_id == recipe.user_id %}
+  <hr>
+  <p class="bottomnav">
+    <a href="/images/{{ recipe.id }}">Muokkaa kuvia | </a>
+    <a href="/edit_recipe/{{ recipe.id }}">Muokkaa reseptiä | </a>
+    <a href="/remove_recipe/{{ recipe.id }}">Poista resepti</a>
+  <hr>
+  </p>
+  {% else %}
+  <hr>
+  {% endif %}
   <h3>Kommentit ({{ comments | count }}):</h3>
   {% for comment in comments %}
   <div class="comment">
@@ -55,28 +66,22 @@
   </div>
   {% endfor %}
   {% if session.user_id %}
-  <h3>Kommentoi</h3>
-  <form action="/submit_comment" method="POST">
-    <label for="comment" class="hidden">Uusi kommentti</label>
-    <textarea class="commentfield" 
-              name="comment" 
-              id="comment" 
-              rows="6" 
-              cols="40" 
-              maxlength="1000"></textarea>
-    <br/>
-    <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
-    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
-    <input type="submit" class="button" value="Lähetä kommentti"/>
-  </form>
- {% endif %}
- {% if session.user_id == recipe.user_id %}
-  <p class="bottomnav">
-    <a href="/images/{{ recipe.id }}">Muokkaa kuvia | </a>
-    <a href="/edit_recipe/{{ recipe.id }}">Muokkaa reseptiä | </a>
-    <a href="/remove_recipe/{{ recipe.id }}">Poista resepti</a>
-
-  </p>
+    {% if comments | count < 100 %}
+    <h3>Kommentoi</h3>
+    <form action="/submit_comment" method="POST">
+      <label for="comment" class="hidden">Uusi kommentti</label>
+      <textarea class="commentfield" 
+                name="comment" 
+                id="comment" 
+                rows="6" 
+                cols="40" 
+                maxlength="1000"></textarea>
+      <br/>
+      <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
+      <input type="submit" class="button" value="Lähetä kommentti"/>
+    </form>
+    {% endif %}
   {% endif %}
 </div> 
 {% endblock %}

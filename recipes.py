@@ -25,20 +25,28 @@ def add_recipe(ingredients, amounts, description,
 
     return recipe_id
 
-def get_all_recipes():
-    sql = """SELECT Recipes.id, Recipes.name, Recipes.description,
-            Recipes.user_id, Users.username,
-            COUNT(Comments.id) comment_count,
+def get_recipes_count():
+    sql = "SELECT COUNT(*) FROM Recipes"
+    result = db.query(sql)
+    return result[0][0]
+
+def get_recipes(page, page_size):
+    sql = """SELECT R.id, R.name, R.description,
+            R.user_id, U.username,
+            COUNT(C.id) comment_count,
             (SELECT Images.id FROM Images
-            WHERE Images.recipe_id = Recipes.id
+            WHERE Images.recipe_id = R.id
             ORDER BY Images.id ASC LIMIT 1) image_id
-            FROM Recipes 
-            JOIN Users ON Recipes.user_id = Users.id
-            LEFT JOIN Comments ON Recipes.id = Comments.recipe_id
-            GROUP BY Recipes.id
-            ORDER BY Recipes.id DESC"""
+            FROM Recipes R
+            JOIN Users U ON R.user_id = U.id
+            LEFT JOIN Comments C ON R.id = C.recipe_id
+            GROUP BY R.id
+            ORDER BY R.id DESC
+            LIMIT ? OFFSET ?"""
     #image = first added picture for each recipe
-    return db.query(sql)
+    limit = page_size
+    offset = page_size * (page - 1)
+    return db.query(sql, [limit, offset])
 
 def get_ingredients(recipe_id):
     sql = "SELECT name, amount FROM Ingredients WHERE recipe_id = ?"
@@ -94,6 +102,11 @@ def get_comment_author_and_recipe(comment_id):
         return None
     return result[0]
 
+def get_comment_count(recipe_id):
+    sql = "SELECT COUNT(*) FROM Comments WHERE recipe_id = ?"
+    result = db.query(sql, [recipe_id])
+    return result[0][0]
+
 def remove_comment(comment_id):
     sql = "DELETE FROM Comments WHERE Comments.id = ?"
     db.execute(sql, [comment_id])
@@ -112,6 +125,10 @@ def add_image(recipe_id, image):
 
 def get_images(recipe_id):
     sql = "SELECT id FROM images WHERE recipe_id = ?"
+    return db.query(sql, [recipe_id])
+
+def get_recipes_image_count(recipe_id):
+    sql = "SELECT COUNT(*) FROM Images WHERE recipe_id = ?"
     return db.query(sql, [recipe_id])
 
 def get_image(image_id):
@@ -139,7 +156,7 @@ def remove_recipe(recipe_id):
     sql = "DELETE FROM Recipes WHERE id = ?"
     db.execute(sql, [recipe_id])
 
-def search_recipes(query):
+def search_recipes(query, page, page_size):
     sql = """SELECT R.id, R.name, R.user_id,
             U.username, COUNT(C.id) comment_count,
             (SELECT Images.id FROM Images
@@ -151,9 +168,18 @@ def search_recipes(query):
             WHERE R.name LIKE ? OR R.description LIKE ?
             OR U.username LIKE ?
             GROUP BY R.id
-            ORDER BY R.id DESC"""
+            ORDER BY R.id DESC
+            LIMIT ?
+            OFFSET ?"""
+    like = "%" + query + "%"
+    return db.query(sql, [like, like, like, page_size, page_size * (page - 1)])
 
-    return db.query(sql, ["%" + query + "%", "%" + query + "%", "%" + query + "%"])
+def get_search_count(query):
+    like = "%" + query + "%"
+    sql = """SELECT COUNT(*) FROM Recipes R
+             JOIN Users U ON R.user_id = U.id
+             WHERE R.name LIKE ? OR R.description LIKE ? OR U.username LIKE ?"""
+    return db.query(sql, [like, like, like])[0][0]
 
 def get_recipes_classes(recipe_id):
     sql = "SELECT title, value FROM Recipe_classes WHERE recipe_id = ?"

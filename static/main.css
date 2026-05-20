@@ -219,8 +219,18 @@ a.mainheader {
 }
 
 .bottomnav {
-  background-color: var(--base);
+  background-color: inherit;
   text-align: center;
+}
+
+.pagenav {
+  background-color: inherit;
+  text-align: center;
+}
+
+.pagenav a:hover {
+  color: var(--link);
+  text-decoration: none;
 }
 
 .search {
@@ -398,6 +408,11 @@ label {
   position: absolute;
   overflow: hidden;
   clip: rect(0,0,0,0);
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--back);
 }
 
 

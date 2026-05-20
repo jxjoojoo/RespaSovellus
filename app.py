@@ -1,5 +1,6 @@
 import secrets
 import sqlite3
+import math
 
 import markupsafe
 from flask import Flask
@@ -31,11 +32,22 @@ def show_lines(content):
     return markupsafe.Markup(content)
 
 @app.route("/")
-def index():
-    all_recipes = recipes.get_all_recipes()
-    recipes_count = len(all_recipes)
+@app.route("/<int:page>")
+def index(page=1):
+    page_size = 20
+    recipes_count = recipes.get_recipes_count()
+    page_count = math.ceil(recipes_count / page_size)
+    page_count = max(page_count, 1)
+
+    if page < 1:
+        return redirect("/1")
+    if page > page_count:
+        return redirect("/" + str(page_count))
+
+    all_recipes = recipes.get_recipes(page, page_size)
     return render_template("index.html", all_recipes=all_recipes,
-                                        recipes_count=recipes_count)
+                                        recipes_count=recipes_count,
+                                        page=page, page_count=page_count)
 
 @app.route("/recipe/<int:recipe_id>")
 def show_recipe(recipe_id):
@@ -140,6 +152,9 @@ def add_image():
             flash("Kuva on liian suuri")
             return redirect(f"/images/{recipe_id}")
 
+        if recipes.get_recipes_image_count(recipe_id) >= 10:
+            abort(403)
+
         recipes.add_image(recipe_id, image)
         return redirect(f"/images/{recipe_id}")
 
@@ -220,9 +235,10 @@ def newrecipe():
         amounts.append(request.form.get(f"amounts{i}", ""))
 
     if "add" in request.form:
-        count += 1
-        ingredients.append("")
-        amounts.append("")
+        if count < 30:
+            count += 1
+            ingredients.append("")
+            amounts.append("")
 
     recipename = request.form.get("recipename", "")
     description = request.form.get("description", "")
@@ -357,8 +373,11 @@ def submit_new_comment():
     require_login()
     check_csrf()
 
-    comment = request.form.get("comment", "")
     recipe_id = request.form.get("recipe_id", "")
+    if recipes.get_comment_count(recipe_id) >= 100:
+        abort(403)
+
+    comment = request.form.get("comment", "")
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
         abort(404)
@@ -428,7 +447,9 @@ def edit_recipe(recipe_id):
         if request.form.get(f"class_{group}")}
 
         if "add" in request.form:
-            ingredients.append({"name": "", "amount": ""})
+            if count < 20:
+                count += 1
+                ingredients.append({"name": "", "amount": ""})
 
         if "remove" in request.form:
             ingredient_index = int(request.form.get("remove"))
@@ -558,26 +579,59 @@ def remove_recipe(recipe_id):
         if "dont" in request.form:
             return redirect("/recipe/" + str(recipe_id))
 
+
 @app.route("/find_recipe")
-def search_recipes():
-    query = request.args.get("query")
+@app.route("/find_recipe/<int:page>")
+def search_recipes(page=1):
+    page_size = 20
+    query = request.args.get("query", "")
+
     if query:
-        results = recipes.search_recipes(query)
+        results_count = recipes.get_search_count(query)
+        page_count = math.ceil(results_count / page_size)
+        page_count = max(page_count, 1)
+
+        if page < 1:
+            return redirect(f"/find_recipe/1?query={query}")
+        if page > page_count:
+            return redirect(f"/find_recipe/{page_count}?query={query}")
+
+        results = recipes.search_recipes(query, page, page_size)
+
     else:
         query = ""
         results = []
+        page_count = 1
+        results_count = 0
 
-    return render_template("find_recipe.html", query=query, results=results)
+    return render_template("find_recipe.html",
+                           query=query, results=results,
+                           results_count=results_count,
+                           page=page, page_count=page_count)
 
 @app.route("/user/<int:user_id>")
-def show_user(user_id):
+@app.route("/user/<int:user_id>/<int:page>")
+def show_user(user_id, page=1):
+    page_size = 20
+    recipes_count = users.get_users_recipe_count(user_id)
+    page_count = math.ceil(recipes_count / page_size)
+    page_count = max(page_count, 1)
+
+    if page < 1:
+        return redirect(f"/user/{user_id}/1")
+    if page > page_count:
+        return redirect(f"/user/{user_id}/{page_count}")
+
     user = users.get_user(user_id)
     if not user:
         abort(404)
-    user_recipes = users.get_users_recipes(user_id)
+    user_recipes = users.get_users_recipes(user_id, page, page_size)
 
     return render_template("show_user.html",
-                           user=user, user_recipes=user_recipes)
+                           user=user, user_recipes=user_recipes,
+                           recipes_count=recipes_count,
+                           page=page, page_count=page_count,
+                           user_id=user_id)
 
 @app.route("/leaderboard")
 def show_leaderboard():
