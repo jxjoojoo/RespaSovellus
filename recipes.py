@@ -1,7 +1,8 @@
 import sqlite3
 import db
 
-def add_recipe(ingredients, amounts, description, recipename, user_id, time, choices):
+def add_recipe(ingredients, amounts, description,
+               recipename, user_id, time, choices):
     sql = """INSERT INTO Recipes (name, user_id, description, time) VALUES
     (?, ?, ?, ?)"""
     try:
@@ -25,7 +26,7 @@ def add_recipe(ingredients, amounts, description, recipename, user_id, time, cho
     return recipe_id
 
 def get_all_recipes():
-    sql= """SELECT Recipes.id, Recipes.name, Recipes.description,
+    sql = """SELECT Recipes.id, Recipes.name, Recipes.description,
             Recipes.user_id, Users.username,
             COUNT(Comments.id) comment_count,
             (SELECT Images.id FROM Images
@@ -40,7 +41,7 @@ def get_all_recipes():
     return db.query(sql)
 
 def get_ingredients(recipe_id):
-    sql ="SELECT name, amount FROM Ingredients WHERE recipe_id = ?"
+    sql = "SELECT name, amount FROM Ingredients WHERE recipe_id = ?"
     return db.query(sql, [recipe_id])
 
 def get_recipe(recipe_id):
@@ -56,7 +57,8 @@ def get_recipe(recipe_id):
     result = db.query(sql, [recipe_id])
     return result[0] if result else None
 
-def update_recipe(recipe_id, recipename, ingredients, description, time, choices):
+def update_recipe(recipe_id, recipename, ingredients,
+                  description, time, choices):
     sql = """UPDATE Recipes SET name = ?,
             description = ?,
             time = ?

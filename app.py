@@ -34,7 +34,8 @@ def show_lines(content):
 def index():
     all_recipes = recipes.get_all_recipes()
     recipes_count = len(all_recipes)
-    return render_template("index.html", all_recipes=all_recipes, recipes_count=recipes_count)
+    return render_template("index.html", all_recipes=all_recipes,
+                                        recipes_count=recipes_count)
 
 @app.route("/recipe/<int:recipe_id>")
 def show_recipe(recipe_id):
@@ -267,7 +268,7 @@ def newrecipe():
         classes=classes,
         choices=choices)
 
-@app.route("/create_recipe", methods=["GET","POST"])
+@app.route("/create_recipe", methods=["GET", "POST"])
 def submit_new_recipe():
     require_login()
     check_csrf()
@@ -523,11 +524,12 @@ def update_recipe(recipe_id, recipename, ingredients,
                                    time, classes, choices)
     if error == "name_already_in_use":
         flash("nimi on jo käytössä, valitse toinen nimi")
-        return render_template("edit.html", recipe=recipe, ingredients=ingredients,
-                                            description=description,
-                                            count=count, hours=hours,
-                                            minutes=minutes, classes=classes,
-                                            choices=choices, images=images)
+        return render_template("edit.html",
+                                recipe=recipe, ingredients=ingredients,
+                                description=description,
+                                count=count, hours=hours,
+                                minutes=minutes, classes=classes,
+                                choices=choices, images=images)
     if not error:
         flash("Resepti päivitetty!")
         return redirect(f"/message?prev=/recipe/{recipe_id}")
@@ -574,7 +576,8 @@ def show_user(user_id):
         abort(404)
     user_recipes = users.get_recipes(user_id)
 
-    return render_template("show_user.html", user=user, user_recipes=user_recipes)
+    return render_template("show_user.html",
+                           user=user, user_recipes=user_recipes)
 
 @app.route("/leaderboard")
 def show_leaderboard():
