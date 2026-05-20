@@ -44,3 +44,9 @@ CREATE TABLE Images (
 	recipe_id INTEGER REFERENCES Recipes,
 	image BLOB
 );
+
+CREATE INDEX idx_recipes_user_id ON Recipes (user_id);
+CREATE INDEX idx_comments_recipe_id ON Comments (recipe_id);
+CREATE INDEX idx_ingredients_recipe_id ON Ingredients (recipe_id);
+CREATE INDEX idx_images_recipe_id ON Images (recipe_id);
+CREATE INDEX idx_recipe_classes_recipe_id ON Recipe_classes (recipe_id);

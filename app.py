@@ -436,7 +436,7 @@ def edit_recipe(recipe_id):
 
         hours = int(request.form.get("hours") or 0)
         minutes = int(request.form.get("minutes") or 0)
-        if minutes < 0:
+        if minutes < 0 or hours < 0:
             return redirect(f"/edit_recipe/{recipe_id}")
 
         time = hours * 60 + minutes
