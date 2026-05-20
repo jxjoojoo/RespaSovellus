@@ -50,6 +50,9 @@
   <hr>
   {% endif %}
   <h3>Kommentit ({{ comments | count }}):</h3>
+  {% if comments | count >= 100 %}
+    <p>Kommenttiosio täynnä</p>
+  {% endif %}
   {% for comment in comments %}
   <div class="comment">
     <div class="com-author">
