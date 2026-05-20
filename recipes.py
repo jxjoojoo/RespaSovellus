@@ -1,27 +1,27 @@
-import db, sqlite3
+import sqlite3
+import db
 
-def add_recipe(ingredients, amounts, description, recipename, user_id, section, time, choices):
-
+def add_recipe(ingredients, amounts, description, recipename, user_id, time, choices):
     sql = """INSERT INTO Recipes (name, user_id, description, time) VALUES
     (?, ?, ?, ?)"""
     try:
         db.execute(sql, [recipename, user_id, description, time])
     except sqlite3.IntegrityError:
         return "name already_in_use"
-    
+
     recipe_id = db.last_insert_id()
-    
+
     sql = "INSERT INTO Ingredients (recipe_id, name, amount) VALUES (?, ?, ?)"
     for name, amount in zip(ingredients, amounts):
         db.execute(sql, [recipe_id, name, amount])
-    
+
     sql = "DELETE FROM Recipe_classes WHERE recipe_id = ?"
     db.execute(sql, [recipe_id])
 
     sql = "INSERT INTO Recipe_classes (recipe_id, title, value) VALUES (?, ?, ?)"
     for category, value in choices.items():
         db.execute(sql, [recipe_id, category, value])
-    
+
     return recipe_id
 
 def get_all_recipes():
@@ -37,7 +37,6 @@ def get_all_recipes():
             GROUP BY Recipes.id
             ORDER BY Recipes.id DESC"""
     #image = first added picture for each recipe
-
     return db.query(sql)
 
 def get_ingredients(recipe_id):
@@ -56,8 +55,8 @@ def get_recipe(recipe_id):
             AND recipes.id = ?"""
     result = db.query(sql, [recipe_id])
     return result[0] if result else None
-    
-def update_recipe(recipe_id, recipename, ingredients, description, section, time, classes, choices):
+
+def update_recipe(recipe_id, recipename, ingredients, description, time, choices):
     sql = """UPDATE Recipes SET name = ?,
             description = ?,
             time = ?

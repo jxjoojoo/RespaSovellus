@@ -1,8 +1,10 @@
 import secrets
-import markupsafe
 import sqlite3
+
+import markupsafe
 from flask import Flask
 from flask import abort, redirect, render_template, flash, request, session, make_response
+
 import db
 import config
 import recipes
@@ -81,9 +83,9 @@ def login():
         if not username or not password:
             flash("Kenttiä tyhjänä")
             return redirect("/login")
-    
+
     user_id = users.check_login_id(username, password)
-        
+
     if user_id:
         session["username"] = username
         session["user_id"] = user_id
@@ -105,7 +107,7 @@ def edit_images(recipe_id):
         abort(403)
 
     images = recipes.get_images(recipe_id)
-    
+
     return render_template("images.html", recipe=recipe, images=images)
 
 @app.route("/add_image", methods=["POST"])
@@ -139,7 +141,7 @@ def add_image():
 
         recipes.add_image(recipe_id, image)
         return redirect(f"/images/{recipe_id}")
-    
+
 @app.route("/remove_image", methods=["POST"])
 def remove_image():
     require_login()
@@ -155,7 +157,7 @@ def remove_image():
 
     for image_id in request.form.getlist("image_id"):
         recipes.remove_image(recipe_id, image_id)
-    
+
     return redirect("/images/" + str(recipe_id))
 
 @app.route("/logout")
@@ -183,11 +185,11 @@ def create_new_account():
     if len(username) == 0 or len(password1) == 0:
         flash("VIRHE: Puuttuvia kenttiä")
         return redirect("/register")
-    
+
     if len(username) > 30:
         flash("Liian pitkä nimi!")
         return redirect("/register")
-    
+
     try:
         users.create_user(username, password1)
     except sqlite3.IntegrityError:
@@ -220,12 +222,11 @@ def newrecipe():
         count += 1
         ingredients.append("")
         amounts.append("")
-    
+
     recipename = request.form.get("recipename", "")
     description = request.form.get("description", "")
     minutes = int(request.form.get("minutes") or 0)
     hours = int(request.form.get("minutes") or 0)
-    section = request.form.get("section")
     classes = recipes.get_all_classes()
     choices = {}
 
@@ -244,7 +245,6 @@ def newrecipe():
                 description=description,
                 hours=hours,
                 minutes=minutes,
-                section=section,
                 classes=classes,
                 choices=choices)
 
@@ -264,7 +264,6 @@ def newrecipe():
         description=description,
         hours=hours,
         minutes=minutes,
-        section=section,
         classes=classes,
         choices=choices)
 
@@ -288,31 +287,26 @@ def submit_new_recipe():
         if ing.strip() and amt.strip():
             ingredients.append(ing)
             amounts.append(amt)
-    
+
     hours = int(request.form.get("hours") or 0)
-    if hours < 0:
-        abort(403)
     minutes = int(request.form.get("minutes") or 0)
-    if minutes < 0:
+    if hours < 0 or minutes < 0:
         abort(403)
-    
+
     time = hours * 60 + minutes
-    section = request.form.get("section")
     recipename = request.form.get("recipename", "")
     description = request.form.get("description", "")
     classes = recipes.get_all_classes()
 
-    choices = {}
-    for group in classes.keys():
-        if request.form.get(f"class_{group}"):
-            choices[group] = request.form.get(f"class_{group}")
+    choices = {
+    group: request.form.get(f"class_{group}") for group in classes
+    if request.form.get(f"class_{group}")}
 
     if not recipename or len(recipename) > 33:
         abort(403)
     if len(description) > 1000:
         abort(403)
     if not description:
-        print("EI OHJETTA")
         flash("Kirjoita reseptille ohje!")
         return render_template(
         "newrecipe.html",
@@ -323,15 +317,11 @@ def submit_new_recipe():
         description=description,
         hours=hours,
         minutes=minutes,
-        section=section,
         classes=classes,
         choices=choices)
 
-    for i in ingredients:
-        if len(i) > 50:
-            abort(403)
-    for j in amounts:
-        if len(j) > 20:
+    for ing, amt in zip(ingredients, amounts):
+        if len(ing) > 50 or len(amt) > 20:
             abort(403)
 
     user_id = session["user_id"]
@@ -339,28 +329,27 @@ def submit_new_recipe():
     if recipename == "" or description == "":
         flash("Puuttuvia tietoja!")
         return redirect("/newrecipe")
-    else:
-        recipe_id = recipes.add_recipe(ingredients, amounts,
-                                        description, recipename,
-                                        user_id, section,
-                                        time, choices)
 
-        if recipe_id == "name already_in_use":
-            flash("nimi on jo käytössä, valitse toinen nimi")
-            return render_template(
-            "newrecipe.html",
-            count=count,
-            ingredients=ingredients,
-            amounts=amounts,
-            recipename=recipename,
-            description=description,
-            hours=hours,
-            minutes=minutes,
-            section=section,
-            classes=classes,
-            choices=choices)
-        flash("Resepti lisätty!")
-        return redirect(F"/message?prev=/recipe/{recipe_id}")
+    recipe_id = recipes.add_recipe(ingredients, amounts,
+                                    description, recipename,
+                                    user_id, time, choices)
+
+    if recipe_id == "name already_in_use":
+        flash("nimi on jo käytössä, valitse toinen nimi")
+        return render_template(
+        "newrecipe.html",
+        count=count,
+        ingredients=ingredients,
+        amounts=amounts,
+        recipename=recipename,
+        description=description,
+        hours=hours,
+        minutes=minutes,
+        classes=classes,
+        choices=choices)
+
+    flash("Resepti lisätty!")
+    return redirect(F"/message?prev=/recipe/{recipe_id}")
 
 @app.route("/submit_comment", methods=["POST"])
 def newcomment():
@@ -385,7 +374,7 @@ def remove_comment(comment_id):
 
         user_id = session["user_id"]
         com = recipes.get_comment_author_and_recipe(comment_id)
-        if com == None:
+        if com is None:
             abort(404)
 
         if com[0] == user_id:
@@ -404,7 +393,7 @@ def edit_recipe(recipe_id):
         abort(404)
     if recipe["user_id"] != session["user_id"]:
         abort(403)
-    
+
     images = recipes.get_images(recipe_id)
 
     if request.method == "POST":
@@ -429,24 +418,21 @@ def edit_recipe(recipe_id):
         minutes = int(request.form.get("minutes") or 0)
         if minutes < 0:
             return redirect(f"/edit_recipe/{recipe_id}")
-        
+
         time = hours * 60 + minutes
-        section = request.form.get("section")
         classes = recipes.get_all_classes()
 
-        choices = {}
-        for group in classes.keys():
-            if request.form.get(f"class_{group}"):
-                choices[group] = request.form.get(f"class_{group}")
-
+        choices = {
+        group: request.form.get(f"class_{group}") for group in classes
+        if request.form.get(f"class_{group}")}
 
         if "add" in request.form:
             ingredients.append({"name": "", "amount": ""})
 
         if "remove" in request.form:
-            index = int(request.form.get("remove"))
-            if 0 <= index < len(ingredients):
-                ingredients.pop(index)
+            ingredient_index = int(request.form.get("remove"))
+            if 0 <= ingredient_index < len(ingredients):
+                ingredients.pop(ingredient_index)
 
         if "save" in request.form:
             if not description:
@@ -460,65 +446,62 @@ def edit_recipe(recipe_id):
                 description=description,
                 hours=hours,
                 minutes=minutes,
-                section=section,
                 classes=classes,
                 choices=choices,
                 images=images)
             result = update_recipe(recipe_id, recipename,
                                     ingredients, description,
-                                    section, time, classes,
-                                    choices, count, hours,
+                                    time, classes, choices,
+                                    count, hours,
                                     minutes, images)
             if result:
                 return result
-        
+
         count = len(ingredients)
         return render_template("edit.html", recipe=recipe,
                                             ingredients=ingredients,
                                             description=description,
-                                            count=count, section=section,
-                                            hours=hours, minutes=minutes,
-                                            classes=classes, choices=choices,
-                                            images=images)
+                                            count=count, hours=hours,
+                                            minutes=minutes, classes=classes,
+                                            choices=choices, images=images)
 
+    if request.method == "GET":
+        ingredients_data = recipes.get_ingredients(recipe_id)
+        ingredients = [{"name": row["name"], "amount": row["amount"]}
+                    for row in ingredients_data
+                    ] or [{"name": "", "amount": ""}]
+        description = recipe["description"]
+        count = len(ingredients)
 
+        classes = recipes.get_all_classes()
+        classes_data = recipes.get_classes(recipe_id)
+        #-> [<sqlite object>, <sqlite object>]
+        section = classes_data[0] if classes_data else ""
+        time = int(recipe["time"]) if recipe["time"] else 0
 
-    ingredients_data = recipes.get_ingredients(recipe_id)
-    ingredients = [{"name": row["name"], "amount": row["amount"]} 
-                   for row in ingredients_data
-                   ] or [{"name": "", "amount": ""}]
-    description = recipe["description"]
-    count = len(ingredients)
+        hours = time // 60
+        minutes = time % 60
 
-    classes = recipes.get_all_classes()
-    classes_data = recipes.get_classes(recipe_id)
-    #-> [<sqlite object>, <sqlite object>]
-    section = classes_data[0] if classes_data else ""
-    time = int(recipe["time"]) if recipe["time"] else 0
+        choices = {category: "(valitse)" for category in classes}
 
-    hours = time // 60
-    minutes = time % 60
+        for row in classes_data:
+            title = row[0]
+            value = row[1]
+            choices[title] = value
 
-    choices = {category: "(valitse)" for category in classes}
+        for category, options in classes.items():
+            if section in options:
+                choices[category] = section
 
-    for row in classes_data:
-        title = row[0]
-        value = row[1]
-        choices[title] = value
+        return render_template("edit.html",
+                                recipe=recipe, ingredients=ingredients,
+                                description=description, count=count,
+                                hours=hours, minutes=minutes,
+                                classes=classes, choices=choices,
+                                images=images)
 
-    for category, options in classes.items():
-        if section in options:
-            choices[category] = section
-
-    return render_template("edit.html", 
-                            recipe=recipe, ingredients=ingredients, 
-                            description=description, count=count, 
-                            section=section, hours=hours,
-                            minutes=minutes, classes=classes, 
-                            choices=choices, images=images)
-
-def update_recipe(recipe_id, recipename, ingredients, 
-                  description, section, time, classes, 
+def update_recipe(recipe_id, recipename, ingredients,
+                  description, time, classes,
                   choices, count, hours, minutes, images):
     recipe = recipes.get_recipe(recipe_id)
 
@@ -536,16 +519,15 @@ def update_recipe(recipe_id, recipename, ingredients,
         abort(403)
 
     error = recipes.update_recipe(recipe_id, recipename,
-                                   ingredients, description, 
-                                   section, time, classes, choices)
+                                   ingredients, description,
+                                   time, classes, choices)
     if error == "name_already_in_use":
         flash("nimi on jo käytössä, valitse toinen nimi")
         return render_template("edit.html", recipe=recipe, ingredients=ingredients,
                                             description=description,
-                                            count=count, section=section,
-                                            hours=hours, minutes=minutes,
-                                            classes=classes, choices=choices,
-                                            images=images)
+                                            count=count, hours=hours,
+                                            minutes=minutes, classes=classes,
+                                            choices=choices, images=images)
     if not error:
         flash("Resepti päivitetty!")
         return redirect(f"/message?prev=/recipe/{recipe_id}")
@@ -563,7 +545,7 @@ def remove_recipe(recipe_id):
     if request.method == "GET":
         recipe = recipes.get_recipe(recipe_id)
         return render_template("remove_recipe.html", recipe=recipe)
-    
+
     if request.method == "POST":
         check_csrf()
         if "remove" in request.form:
@@ -590,11 +572,11 @@ def show_user(user_id):
     user = users.get_user(user_id)
     if not user:
         abort(404)
-    recipes = users.get_recipes(user_id)
+    user_recipes = users.get_recipes(user_id)
 
-    return render_template("show_user.html", user=user, recipes=recipes)
+    return render_template("show_user.html", user=user, user_recipes=user_recipes)
 
 @app.route("/leaderboard")
-def leaderboard():
+def show_leaderboard():
     leaderboard = users.get_leaderboard()
     return render_template("leaderboard.html", leaderboard=leaderboard)

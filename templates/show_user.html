@@ -6,7 +6,7 @@
   <div class="header">
     <h2>Käyttäjä {{ user.username }} </h2>
     <p>
-      on julkaissut {% if recipes | count == 1 %}yhden reseptin{% else %}{{ recipes | count }} reseptiä{% endif %}.
+      on julkaissut {% if user_recipes | count == 1 %}yhden reseptin{% else %}{{ user_recipes | count }} reseptiä{% endif %}.
     </p>
   </div>
   {% if session.user_id == user.id %}
@@ -14,7 +14,7 @@
     Olet kirjautunut tälle käyttäjälle
   </p>
   {% endif %}
-{% for recipe in recipes %}
+{% for recipe in user_recipes %}
 <div class="homep-recipe">
   <div class="recipe-info">
     <a class="recipe-link" href="/recipe/{{ recipe.id }}">
