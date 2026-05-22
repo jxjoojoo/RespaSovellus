@@ -1,6 +1,8 @@
 # Pylint-raportti
-
+Ilmoitukset saatu seuraavalla komennolla:
+```
 pylint --disable=C0114,C0116 *.py
+```
 Docstring ilmoitukset C0114 ja C0116 ovat jätetty pois raportista. Sovelluksen kehityksessä on tehty tietoisesti päätös, ettei käytetä docstring-kommentteja, joten tämä selkeyttää raporttia.
 
 ```
