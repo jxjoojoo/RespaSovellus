@@ -19,8 +19,6 @@
 7. Käynnistä sovellus: flask run
 8. Avaa selaimessa
 
-_____________________________________________________________________________________________________________
-
 # Suuri tietomäärä:
 
 Testauksessa on ajettu seed.py tiedosto. Testauksessa sovelluksessa on 1000 käyttäjää, 1 000 000 reseptiä ja 10 000 000 satunnaisesti resepteihin jakautunutta kommenttia.
@@ -62,3 +60,18 @@ Kommentin lisäys/poisto: 0,01s
 >  mutta viimeisen sivun(30/30) lataus kestää melkein tuplasti kauemmin: 0.75s.
   
 >  LIKE ? kyselyt vievät kauan, koska hakusanoja ei saa tehostettua indekseillä.
+
+# Kehitysideoita:
+
+- Paremmat haku-ominaisuudet:
+Käyttäjä voisi hakea myös esimerkiksi pelkän käyttäjän perusteella tai vain resepteistä joilla on kuvia yms. Rajaukset näkyisivät käyttäjälle dropdown valikkona.
+
+- Käyttäjät pystyisivät antamaan reseptille arvosanan 1-5, joiden määrä ja keskiarvo näytettäisiin reseptissä.
+
+- Raaka aineiden määrille dropdown valikko, josta voisi valita määrälle yksikön (esim. kg, litra, tl).
+
+- Sivujen taustaksi tumma mustavalkoinen kuva, joka koostuu monesta erilaisesta ruokakuvasta.
+
+- Reseptien ja käyttäjäprofiilien osoitteet voisi muuttaa muotoon /recipe/{recipe_name} ja /user/{username} /recipe/{recipe_id} ja /user/{user_id} sijasta (nimillä UNIQUE vaatimus)
+
+- Takaisin navigointi (pitäisi toteuttaa JavaScriptillä).
