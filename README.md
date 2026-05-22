@@ -24,7 +24,7 @@ ________________________________________________________________________________
 # Suuri tietomäärä:
 
 Testauksessa on ajettu seed.py tiedosto. Testauksessa sovelluksessa on 1000 käyttäjää, 1 000 000 reseptiä ja 10 000 000 satunnaisesti resepteihin jakautunutta kommenttia.
-> tiedoston koko: 520 MB.
+> database.db tiedoston koko: 520 MB.
 
 Eri sivujen lataaminen vei seuraavan verran aikaa:
 
