@@ -46,6 +46,7 @@ CREATE TABLE Images (
 );
 
 CREATE INDEX idx_recipes_user_id ON Recipes (user_id);
+CREATE INDEX idx_users_user_id ON Users (id);
 CREATE INDEX idx_comments_recipe_id ON Comments (recipe_id);
 CREATE INDEX idx_ingredients_recipe_id ON Ingredients (recipe_id);
 CREATE INDEX idx_images_recipe_id ON Images (recipe_id);
