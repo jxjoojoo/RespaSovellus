@@ -129,7 +129,7 @@ def get_images(recipe_id):
 
 def get_recipes_image_count(recipe_id):
     sql = "SELECT COUNT(*) FROM Images WHERE recipe_id = ?"
-    return db.query(sql, [recipe_id])
+    return db.query(sql, [recipe_id])[0][0]
 
 def get_image(image_id):
     sql = "SELECT image FROM Images WHERE id = ?"

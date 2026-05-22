@@ -542,7 +542,7 @@ def update_recipe(recipe_id, recipename, ingredients,
 
     error = recipes.update_recipe(recipe_id, recipename,
                                    ingredients, description,
-                                   time, classes, choices)
+                                   time, choices)
     if error == "name_already_in_use":
         flash("nimi on jo käytössä, valitse toinen nimi")
         return render_template("edit.html",
