@@ -217,7 +217,7 @@ def create_new_account():
 
 @app.route("/message")
 def flash_message():
-    #redirect("/message?prev={edellinen sivu}") kun ohjaus muualle
+    #redirect("/message?prev={edellinen sivu}") when redirect elsewhere
     prev = request.args.get("prev", "/")
     return render_template("message.html", prev=prev)
 
