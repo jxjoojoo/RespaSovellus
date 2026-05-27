@@ -2,12 +2,12 @@
 
 - Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen
 - Käyttäjä pystyy lisäämään, muokkaamaan ja poistamaan reseptejä
-- Köyttäjä pystyy lisäämään ja poistamaan kuvia reseptissä
+- Käyttäjä pystyy lisäämään ja poistamaan kuvia reseptissä
 - Käyttäjä näkee kaikki lisätyt reseptit
 - Käyttäjä pystyy etsimään reseptiä hakusanalla
 - Reseptejä pystyy luokittelemaan esim. alku-, pää-, jälkiruoka, nopea, hidas. Luokkia pystyy tarvittaessa lisäämään init.sql tiedostoon.
 - Sovelluksessa on käyttäjäsivut, joilla näkyy käyttäjän julkaisemat resptit sekä niiden määrä.
-- Sovelluksessa on leaderboard, joka näyttää viisi eniten resptejö lisännyttä käyttäjää
+- Sovelluksessa on leaderboard, joka näyttää viisi eniten resptejä lisännyttä käyttäjää
 - Sovelluksessa pystyy kommentoimaan muiden käyttäjien reseptejä
 
 
