@@ -20,7 +20,6 @@ def require_login():
 
 def check_csrf():
     if "csrf_token" not in session:
-        print("Hyökkäys huomattu")
         abort(403)
     if request.form["csrf_token"] != session["csrf_token"]:
         abort(403)
@@ -56,10 +55,8 @@ def show_recipe(recipe_id):
         abort(404)
 
     ingredients = recipes.get_ingredients(recipe_id)
-    user_id = recipe["user_id"]
+    username = recipe["username"]
 
-    sql = "SELECT username FROM Users WHERE id = ?"
-    username = db.query(sql, [user_id])[0][0]
     classes = recipes.get_recipes_classes(recipe_id)
 
     comments = recipes.get_recipes_comments(recipe_id)
@@ -366,7 +363,7 @@ def submit_new_recipe():
         choices=choices)
 
     flash("Resepti lisätty!")
-    return redirect(F"/message?prev=/recipe/{recipe_id}")
+    return redirect(f"/message?prev=/recipe/{recipe_id}")
 
 @app.route("/submit_comment", methods=["POST"])
 def submit_new_comment():
